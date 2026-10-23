@@ -1,0 +1,5 @@
+.cache/
+.DS_Store
+# Apple's assets and binary dumps stay out of the public repo; tools/extract-assets.sh rebuilds the assets on a Mac
+public/assets/
+docs/study/

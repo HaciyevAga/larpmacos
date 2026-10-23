@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Nothing the page fetches or sends may leave its own origin: camera frames and photos stay in the browser. -->
+<meta http-equiv="Content-Security-Policy" content="connect-src 'self'">
+<title>Photo Booth</title>
+<link rel="icon" href="assets/icons/photo-booth.png">
+<link rel="preload" href="assets/fonts/SFNS.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/macos.css">
+<script type="module" src="js/app.js"></script>
+<script type="module" src="js/photobooth.js"></script>
+</head>
+<body>
+
+<div id="gate">
+  <img src="assets/icons/finder.png" alt="" width="96" height="96">
+  <h1>Grab a computer</h1>
+  <p>This Mac only starts up on a laptop or desktop screen.</p>
+</div>
+
+<div id="desktop">
+  <div id="wallpaper"></div>
+
+  <header id="menubar">
+    <nav id="menus"></nav>
+    <div id="status">
+      <span class="st"><i class="sym" data-sym="battery.100percent" style="--w:26px;--h:12px"></i></span>
+      <span class="st"><i class="sym" data-sym="wifi" style="--w:20px;--h:15px"></i></span>
+      <span class="st"><i class="sym" data-sym="magnifyingglass" style="--w:18px;--h:17px"></i></span>
+      <span class="st"><i class="sym" data-sym="switch.2" style="--w:18px;--h:16px"></i></span>
+      <span class="st" id="clock"><span></span><span></span></span>
+    </div>
+  </header>
+
+  <section class="window" id="settings" data-app="settings" hidden>
+    <aside class="sb">
+      <div class="titlebar"><div class="lights"><b class="close"></b><b class="min"></b><b class="zoom" data-off></b></div></div>
+      <div class="search"><i class="sym" data-sym="magnifyingglass" style="--w:13px;--h:12px"></i>Search</div>
+      <div class="sb-list"></div>
+    </aside>
+    <main>
+      <div class="toolbar titlebar">
+        <i class="sym" data-sym="chevron.left" style="--w:8px;--h:14px"></i>
+        <i class="sym" data-sym="chevron.right" style="--w:8px;--h:14px"></i>
+        <h2>Wallpaper</h2>
+      </div>
+      <div class="pane">
+        <div class="group current">
+          <img alt="">
+          <div><p class="name"></p><p class="popup">Fill Screen</p></div>
+        </div>
+        <div class="group row"><span>Show on all Spaces</span><span class="switch on"></span></div>
+        <div class="walls"></div>
+      </div>
+    </main>
+  </section>
+
+  <section class="window dark" id="photobooth" data-app="photobooth" hidden>
+    <div class="titlebar"><div class="lights"><b class="close"></b><b class="min"></b><b class="zoom"></b></div><h2>Photo Booth</h2></div>
+    <!-- Layout from Base.lproj/MainMenu.nib: PBView 720×480 with the 62 px tray over its bottom edge,
+         then a 720×60 tab view whose tabs are LiveVideo / Still / CountDown / MovieRecording. -->
+    <div class="pb-view">
+      <canvas class="pb-live"></canvas>
+      <img class="pb-item" alt="" hidden>
+      <video class="pb-item" playsinline hidden></video>
+      <div class="pb-grid" hidden></div>   <!-- effects browser: 3×3, filled by photobooth.js -->
+      <p class="pb-msg" hidden><b></b><span></span></p>
+      <div class="pb-tray" hidden><div class="pb-strip"></div></div>
+      <div class="pb-slider off"><input type="range" min="0.1" max="1" step="0.001" value="0.5" aria-label="Effect amount"></div>
+    </div>
+    <div class="pb-bar" data-tab="live">
+      <div class="pb-modes">
+        <button data-mode="4up" title="Take four quick pictures"><i class="sym" data-sym="rectangle.grid.2x2" style="--w:21px;--h:16px"></i></button>
+        <button data-mode="still" title="Take a still picture" class="on"><i class="sym" data-sym="person.crop.rectangle" style="--w:22px;--h:16px"></i></button>
+        <button data-mode="movie" title="Record a movie clip"><i class="sym" data-sym="video" style="--w:22px;--h:15px"></i></button>
+      </div>
+      <button class="pb-shutter" disabled></button>
+      <div class="pb-count"><span>3</span><span>2</span><span>1</span><img alt=""></div>
+      <span class="pb-timer">00:00:00</span>
+      <div class="pb-pages">   <!-- PBEffectPageIndicatorView -->
+        <button data-step="-1" title="Previous Effects"><i class="sym" data-sym="arrowtriangle.left.fill" style="--w:16px;--h:14px"></i></button>
+        <span class="dots"></span>
+        <button data-step="1" title="Next Effects"><i class="sym" data-sym="arrowtriangle.right.fill" style="--w:16px;--h:14px"></i></button>
+      </div>
+      <button class="pb-effects" disabled>Effects</button>
+      <button class="pb-share" title="Share"><i class="sym" data-sym="NSShareTemplate" style="--w:13px;--h:16px"></i></button>
+    </div>
+  </section>
+
+  <footer id="dock"><nav></nav></footer>
+</div>
+
+</body>
+</html>

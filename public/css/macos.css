@@ -1,0 +1,373 @@
+/* LARP macOS — Sequoia desktop shell, Light appearance (what a new Mac ships with). */
+
+@font-face {
+  font-family: "SF Pro";
+  src: url("../assets/fonts/SFNS.woff2") format("woff2");
+  font-weight: 1 1000;
+  font-display: block;
+}
+
+:root {
+  /* ponytail: hand-tuned against memory of Sequoia; nudge these when comparing side by side with a real Mac. */
+  --menubar-h: 24px;
+  --dock-tile: 48px;            /* System Settings default Dock size */
+  --accent: #0064e1;            /* menu and sidebar selection */
+  --menu-bg: rgba(242, 242, 242, .8);
+  --text: rgba(0, 0, 0, .85);
+  --text-2: rgba(0, 0, 0, .5);
+  --text-3: rgba(0, 0, 0, .25);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; cursor: inherit; }
+html {
+  height: 100%;
+  font: 13px/1.25 "SF Pro", -apple-system, system-ui, sans-serif;
+  letter-spacing: -.006em;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  background: #000;
+  cursor: url("../assets/cursor/arrow.png") 4 4, default;
+  cursor: -webkit-image-set(url("../assets/cursor/arrow.png") 1x, url("../assets/cursor/arrow@2x.png") 2x) 4 4, default;
+  cursor: image-set(url("../assets/cursor/arrow.png") 1x, url("../assets/cursor/arrow@2x.png") 2x) 4 4, default;
+}
+/* Window-resize cursors (NSCursor frameResizeCursorFromPosition:inDirections:, macOS 15), set by app.js. */
+html[data-resize="ew"] {
+  cursor: url("../assets/cursor/resize-ew.png") 9 9, ew-resize;
+  cursor: -webkit-image-set(url("../assets/cursor/resize-ew.png") 1x, url("../assets/cursor/resize-ew@2x.png") 2x) 9 9, ew-resize;
+  cursor: image-set(url("../assets/cursor/resize-ew.png") 1x, url("../assets/cursor/resize-ew@2x.png") 2x) 9 9, ew-resize;
+}
+html[data-resize="ns"] {
+  cursor: url("../assets/cursor/resize-ns.png") 9 9, ns-resize;
+  cursor: -webkit-image-set(url("../assets/cursor/resize-ns.png") 1x, url("../assets/cursor/resize-ns@2x.png") 2x) 9 9, ns-resize;
+  cursor: image-set(url("../assets/cursor/resize-ns.png") 1x, url("../assets/cursor/resize-ns@2x.png") 2x) 9 9, ns-resize;
+}
+html[data-resize="nwse"] {
+  cursor: url("../assets/cursor/resize-nwse.png") 9 9, nwse-resize;
+  cursor: -webkit-image-set(url("../assets/cursor/resize-nwse.png") 1x, url("../assets/cursor/resize-nwse@2x.png") 2x) 9 9, nwse-resize;
+  cursor: image-set(url("../assets/cursor/resize-nwse.png") 1x, url("../assets/cursor/resize-nwse@2x.png") 2x) 9 9, nwse-resize;
+}
+html[data-resize="nesw"] {
+  cursor: url("../assets/cursor/resize-nesw.png") 9 9, nesw-resize;
+  cursor: -webkit-image-set(url("../assets/cursor/resize-nesw.png") 1x, url("../assets/cursor/resize-nesw@2x.png") 2x) 9 9, nesw-resize;
+  cursor: image-set(url("../assets/cursor/resize-nesw.png") 1x, url("../assets/cursor/resize-nesw@2x.png") 2x) 9 9, nesw-resize;
+}
+body { margin: 0; height: 100%; overflow: hidden; user-select: none; -webkit-user-select: none; }
+img { -webkit-user-drag: none; }
+h1, h2, p { margin: 0; font: inherit; }
+[hidden] { display: none !important; }
+
+/* SF Symbol masks: <i class="sym" data-sym="wifi" style="--w;--h">, tinted by currentColor. */
+.sym {
+  display: inline-block; flex: none; width: var(--w); height: var(--h);
+  background: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;   /* app.js sets mask-image from data-sym */
+}
+
+/* ---------- Gate ---------- */
+#gate {
+  display: none; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  padding: 24px; text-align: center; color: #fff; background: #1d1d1f;
+}
+#gate h1 { font-size: 22px; font-weight: 700; }
+#gate p { max-width: 300px; color: rgba(255, 255, 255, .6); font-size: 14px; }
+body.gated #gate { display: flex; }
+body.gated #desktop { display: none; }
+
+/* ---------- Desktop ---------- */
+#desktop { position: relative; height: 100%; overflow: hidden; background: #000; }   /* shows between Spaces */
+#wallpaper { position: absolute; inset: 0; background: #1b2a4a center / cover no-repeat; }
+
+/* ---------- Menu bar ---------- */
+#menubar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--menubar-h); padding: 0 7px 0 9px;
+  display: flex; align-items: center; justify-content: space-between;
+  color: var(--mb-fg); background: var(--mb-bg);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6); backdrop-filter: blur(30px) saturate(1.6);
+  transition: transform .25s ease;
+}
+#menubar[data-tone="dark"] { --mb-fg: #fff; --mb-bg: rgba(0, 0, 0, .12); --mb-hi: rgba(255, 255, 255, .25); }
+#menubar[data-tone="light"] { --mb-fg: rgba(0, 0, 0, .85); --mb-bg: rgba(255, 255, 255, .25); --mb-hi: rgba(0, 0, 0, .1); }
+#menus, #status { display: flex; align-items: center; height: 100%; }
+#menus button, .st {
+  height: 22px; display: flex; align-items: center; gap: 6px;
+  padding: 0 10px; border: 0; border-radius: 5px; background: none; color: inherit; font: inherit; white-space: nowrap;
+}
+#menus button.open { background: var(--mb-hi); }
+#menus button.app { font-weight: 700; }
+#menus button.apple { padding: 0 12px 0 11px; }
+.st { padding: 0 8px; }
+#clock { padding-right: 5px; }
+
+/* Full-screen app: menu bar hides until the pointer touches the top edge. */
+body.fs #menubar { z-index: 2100; --mb-fg: var(--text); --mb-bg: rgba(246, 246, 246, .9); --mb-hi: rgba(0, 0, 0, .1); transform: translateY(-100%); }
+body.fs.reveal #menubar { transform: none; }
+
+/* ---------- Menus ---------- */
+.menu {
+  position: fixed; z-index: 2200; min-width: 180px; padding: 5px 0;
+  color: var(--text); background: var(--menu-bg); border-radius: 7px;
+  -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8);
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .22), inset 0 0 0 .5px rgba(255, 255, 255, .45), 0 10px 30px rgba(0, 0, 0, .22);
+}
+.menu .item {
+  position: relative; height: 22px; margin: 0 5px; padding: 0 10px 0 21px;
+  display: flex; align-items: center; gap: 30px; border-radius: 4px; white-space: nowrap;
+}
+.menu .item .key { margin-left: auto; color: var(--text-2); }
+.menu .item.check::before { content: "✓"; position: absolute; left: 7px; font-size: 12px; }
+.menu .item .sym { margin-left: auto; }
+.menu .item.off { color: var(--text-3); }
+.menu .item.off .key { color: var(--text-3); }
+.menu .item:not(.off):hover, .menu .item.blink { color: #fff; background: var(--accent); }
+.menu .item:not(.off):hover .key, .menu .item.blink .key { color: rgba(255, 255, 255, .85); }
+.menu .item.blinkoff { color: var(--text); background: none; }
+.menu .sep { height: 1px; margin: 5px 10px 4px; background: rgba(0, 0, 0, .1); }
+.menu .help-search { display: flex; align-items: center; gap: 8px; height: 30px; margin: 0 5px 4px; padding: 0 6px 0 16px; }
+.menu .help-search span { flex: 1; height: 22px; border-radius: 6px; background: rgba(255, 255, 255, .7); box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .15); }
+
+/* ---------- Windows ---------- */
+.window {
+  position: absolute; display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 10px; background: #ececec;
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .2), 0 8px 28px rgba(0, 0, 0, .22);
+}
+.window.active { box-shadow: 0 0 0 .5px rgba(0, 0, 0, .25), 0 22px 70px 4px rgba(0, 0, 0, .45); }
+/* Opening and closing: a quick fade with a slight scale (inferred from macOS's document-window animation). [hidden]
+   still flips at once (the camera stops on close); the window stays drawn until the fade ends. */
+.window { transition: opacity .2s ease-out, transform .2s ease-out, display .2s allow-discrete; }
+.window[hidden] { opacity: 0; transform: scale(.97); pointer-events: none; }
+@starting-style { .window { opacity: 0; transform: scale(.97); } }
+.titlebar { position: relative; flex: none; height: 28px; display: flex; align-items: center; padding-left: 8px; }
+.titlebar h2 { position: absolute; left: 70px; right: 70px; text-align: center; font-weight: 600; pointer-events: none; color: var(--text); }
+.window:not(.active) .titlebar h2 { color: var(--text-3); }
+
+/* Traffic lights: grey when inactive, glyphs on hover. */
+.lights { display: flex; gap: 8px; }
+.lights b { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 .5px var(--rim); }
+.lights .close { --c: #ff5f57; --rim: #e2463f; }
+.lights .min { --c: #febc2e; --rim: #e1a116; }
+.lights .zoom { --c: #28c840; --rim: #14ae2c; }
+.window:not(.active) .lights:not(:hover) b, .lights b[data-off] { --c: rgba(0, 0, 0, .1); --rim: rgba(0, 0, 0, .06); }
+.lights:hover b:not([data-off])::after {
+  content: ""; position: absolute; inset: 0;
+  background: center / 8px 8px no-repeat var(--glyph);
+}
+.lights .close { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1.5 1.5l5 5m0-5l-5 5' stroke='%234d0000' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.lights .min { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1 4h6' stroke='%23985700' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.lights .zoom { --glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1.6 1.6h3.6L1.6 5.2zM6.4 6.4H2.8l3.6-3.6z' fill='%23006500'/%3E%3C/svg%3E"); }
+.lights b:active::after { filter: brightness(.6); }
+
+/* Dark windows (Photo Booth). */
+.window.dark { background: #1e1e1e; color: #fff; --text: rgba(255, 255, 255, .85); --text-3: rgba(255, 255, 255, .25); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .6), inset 0 0 0 .5px rgba(255, 255, 255, .12), 0 8px 28px rgba(0, 0, 0, .3); }
+.window.dark.active { box-shadow: 0 0 0 .5px rgba(0, 0, 0, .6), inset 0 0 0 .5px rgba(255, 255, 255, .15), 0 22px 70px 4px rgba(0, 0, 0, .55); }
+.window.dark .titlebar { background: #3b3d3e; border-bottom: .5px solid #000; }   /* observed in the real app */
+.window.dark:not(.active) .lights:not(:hover) b { --c: rgba(255, 255, 255, .18); --rim: rgba(255, 255, 255, .08); }
+
+/* ---------- Photo Booth ---------- */
+/* Geometry from MainMenu.nib (AppKit frames, flipped to top-left): 720×480 PBView, 62 px tray over its bottom,
+   720×60 toolbar. Colours, the countdown layout and thumbnail sizes are not in the nib: inferred, tune by eye. */
+#photobooth { width: 720px; height: 568px; background: transparent; }   /* default; app.js resizes it keeping height = width / 1.5 + 88 */
+.pb-view { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #000; }
+.pb-view > canvas, .pb-view > .pb-item { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pb-msg {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  color: rgba(255, 255, 255, .85); text-align: center;
+}
+.pb-msg b { font-size: 17px; font-weight: 600; }
+.pb-msg span { color: rgba(255, 255, 255, .55); }
+/* Tray: PBView's _trayBlendedView, an NSVisualEffectView with within-window blending and material 0 (appearance
+   based, dark here). Cells are IKImageBrowserView's: 90×60 with a 1 pt inset, intercell spacing 1, layout margin 10×1,
+   right-aligned. The tint and blur are fitted to the owner's screenshot of the real app; the 19 px right gap is observed. */
+.pb-tray {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 62px;
+  background: rgba(19, 23, 29, .7);
+  -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+}
+.pb-strip { display: flex; align-items: center; gap: 3px; height: 100%; padding: 0 19px 0 10px; overflow-x: auto; scrollbar-width: none; }
+.pb-strip > :first-child { margin-left: auto; }   /* right-aligned, still scrollable (justify-content: flex-end isn't) */
+.pb-strip::-webkit-scrollbar { display: none; }
+.pb-thumb { position: relative; flex: none; width: 88px; height: 58px; padding: 0; border: 0; overflow: hidden; background: #000; }
+.pb-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pb-thumb.sel { box-shadow: 0 0 0 2px #0a84ff; }   /* selection look: unknown */
+.pb-thumb.movie::after { content: ""; position: absolute; left: 4px; bottom: 4px; width: 12px; height: 9px; background: url("../assets/photobooth/PB_video_sm.png") center / contain no-repeat; }
+.pb-thumb .dur { position: absolute; right: 4px; bottom: 3px; font-size: 11px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
+.pb-fall { position: absolute; top: 0; bottom: 0; overflow: hidden; pointer-events: none; }   /* photofall: SCNLayer ∩ tray */
+.pb-fall img { position: absolute; object-fit: cover; }
+
+/* Slider: PBTransparentSlider (REA, -[PBView _initSliderView] and friends). A 240×49 pt view centred over the preview,
+   its bottom on the tray's top; a rounded rect (radius 5) of white 0.1 at alpha 0.7 over a 20 pt background blur; a
+   7 pt white dot on the left and a 13 pt one on the right; an NSSlider 142 pt wide at x 49, 2.5 pt below centre,
+   0.1–1. It fades in and out (NSView animator: duration inferred). The NSSlider's look (accent fill, knob) is inferred
+   from macOS 15's dark slider. */
+.pb-slider {
+  position: absolute; left: calc(50% - 120px); bottom: 62px; width: 240px; height: 49px; border-radius: 5px;
+  background: rgba(26, 26, 26, .7); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  transition: opacity .25s, visibility .25s;
+}
+.pb-slider.off { opacity: 0; visibility: hidden; }
+.pb-slider::before, .pb-slider::after { content: ""; position: absolute; border-radius: 50%; background: #fff; }
+.pb-slider::before { left: 36px; top: 21px; width: 7px; height: 7px; }
+.pb-slider::after { left: 197px; top: 18px; width: 13px; height: 13px; }
+.pb-slider input { position: absolute; left: 49px; top: 2.5px; width: 142px; height: 49px; margin: 0; background: none; -webkit-appearance: none; appearance: none; }
+.pb-slider input::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, #0a84ff calc(10px + var(--f, .44) * (100% - 20px)), rgba(255, 255, 255, .25) 0); }
+.pb-slider input::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, #0a84ff calc(10px + var(--f, .44) * (100% - 20px)), rgba(255, 255, 255, .25) 0); }
+.pb-slider input::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; background: #fff; box-shadow: 0 .5px 2px rgba(0, 0, 0, .5); -webkit-appearance: none; }
+.pb-slider input::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 .5px 2px rgba(0, 0, 0, .5); }
+
+/* Toolbar: PBTextureView is an NSVisualEffectView with behind-window blending and material 21 (underWindowBackground),
+   so it shows the blurred desktop behind the window (the window itself is transparent here). Tint fitted by eye. */
+.pb-bar {
+  position: relative; flex: none; height: 60px; background: rgba(46, 46, 46, .82);
+  -webkit-backdrop-filter: blur(40px) saturate(1.5); backdrop-filter: blur(40px) saturate(1.5);
+}
+.pb-bar > * { position: absolute; }
+.pb-bar button { padding: 0; border: 0; font: inherit; color: inherit; background: none; }
+/* Controls are translucent white over the toolbar; geometry and alphas measured from the real app's screenshot. */
+.pb-modes {   /* PBRecordingRadioButton: 104×24 at (17, 18) in the nib, 100×22 at (20, 19) on screen; segments 32, 30, 30 */
+  left: 20px; top: 19px; width: 100px; height: 22px; display: flex; gap: 1px; padding: 1px;
+  border-radius: 6px; background: rgba(255, 255, 255, .07); box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .08);
+}
+.pb-modes button { flex: 30 1 0; display: grid; place-items: center; border-radius: 5px; background: none; color: rgba(255, 255, 255, .85); }
+.pb-modes button:first-child { flex-grow: 32; }
+.pb-modes button.on { background: rgba(255, 255, 255, .33); }
+/* PBShutterButton draws itself: a 50 pt disc at (5.5, 5.5) with a 1 pt ring, then its Assets.car glyph drawn 4 pt up in a
+   taller canvas (so 2 pt above centre); pressed = black at 50 % over all of it. -[setImageForType:colorType:]:
+   colour 1 (live) = systemRed disc, white glyph; 0 (viewing an item) = controlBackgroundColor disc, template glyph,
+   secondaryLabelColor ring; 2 (stop) = white disc, systemRed glyph, secondaryLabelColor ring. */
+.pb-bar .pb-shutter {
+  --fill: #ff4f44; --ring: var(--fill); --glyph: #fff; --img: url("../assets/photobooth/shutterBtn.png"); --size: 30px; --lift: 2px;
+  left: calc(50% - 25px); top: 5px; width: 50px; height: 50px; border-radius: 50%;
+  background: var(--fill); box-shadow: 0 0 0 .5px var(--ring), inset 0 0 0 .5px var(--ring);
+}
+.pb-bar .pb-shutter::after {
+  content: ""; position: absolute; left: 0; right: 0; top: calc(-1 * var(--lift)); bottom: var(--lift); margin: auto; width: var(--size); height: var(--size); background: var(--glyph);
+  -webkit-mask: var(--img) center / contain no-repeat; mask: var(--img) center / contain no-repeat;
+}
+.pb-bar[data-mode="movie"] .pb-shutter { --img: url("../assets/photobooth/movieBtn.png"); }
+.pb-bar[data-tab="still"] .pb-shutter { --fill: #1e1e1e; --ring: rgba(255, 255, 255, .55); --glyph: rgba(255, 255, 255, .85); }
+.pb-bar[data-tab="recording"] .pb-shutter { --fill: #fff; --ring: rgba(255, 255, 255, .55); --glyph: #ff4f44; --img: url("../assets/photobooth/stopBtn.png"); --size: 23px; --lift: 0px; }
+.pb-shutter:active:not(:disabled) { filter: brightness(.5); }
+.pb-bar:not([data-tab="recording"]) .pb-shutter:disabled, .pb-effects:disabled { opacity: .45; }   /* the stop button doesn't dim */
+.pb-bar :is(.pb-effects, .pb-share) {   /* rounded-bezel push buttons: 96×20 on screen, 20 from the top, 17 from the right */
+  top: 20px; height: 20px; border-radius: 5px; color: rgba(255, 255, 255, .85);
+  background: rgba(255, 255, 255, .33); box-shadow: inset 0 .5px 0 rgba(255, 255, 255, .25);
+}
+.pb-effects { right: 17px; width: 96px; }   /* 110×34 at (598, 12) in the nib */
+.pb-share { right: 17px; width: 39px; display: grid; place-items: center; }   /* 51×33 at (656, 12); NSImageNameShareTemplate, size inferred */
+.pb-bar :is(.pb-effects:active:not(:disabled), .pb-share:active) { background: rgba(255, 255, 255, .45); }
+.pb-count {   /* PBCountdownView: 600×60, centred */
+  left: 0; right: 0; top: 0; height: 60px;   /* spans the bar so it fits the narrowest window */
+  display: flex; align-items: center; justify-content: center; gap: 34px;
+  font-size: 32px; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, .3);
+}
+.pb-count .on { color: #fff; }
+.pb-count img { width: 44px; height: 44px; }
+.pb-timer { left: 17px; top: 17px; width: 120px; height: 32px; font-size: 22px; line-height: 32px; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, .55); }   /* PBRecordingTimerView, 22 pt, secondaryLabelColor */
+/* Effects browser. Tiles are drawn by WebGL under these buttons; the gap shows the black canvas. */
+.pb-view.browsing > canvas { object-fit: fill; }   /* ponytail: tiles must line up with the buttons; stretches slightly in full screen */
+/* +[PageLayer rectForEffectOnPage:atIndex:givenCurrentPage:withSize:]: margins and gaps are 3, so a tile is
+   ((W − 12) / 3) × ((H − 12) / 3); page p sits p view-widths to the right and the grid slides by whole pages. */
+.pb-grid { --k: 1; --slide: 0s; --page: 0; position: absolute; inset: 0; transform: translateX(calc(var(--page) * -100%)); transition: transform var(--slide) ease-in-out; }
+.pb-grid button {
+  position: absolute; padding: 0; border: 0; background: none;
+  left: calc(var(--p) * 100% + 3px + var(--c) * ((100% - 12px) / 3 + 3px)); top: calc(3px + var(--r) * ((100% - 12px) / 3 + 3px));
+  width: calc((100% - 12px) / 3); height: calc((100% - 12px) / 3);
+  transition: calc(.25s * var(--k)) ease; transition-property: left, top, width, height, opacity;
+}
+.pb-grid button.full { left: calc(var(--page) * 100%); top: 0; width: 100%; height: 100%; }   /* zoomed: the whole view */
+.pb-grid.zoom button:not(.full) { opacity: 0; }
+.pb-grid button.top { z-index: 1; }
+/* -[EffectLayer textLabel]: a CATextLayer 50 high, its bottom 10 above the tile's, system font 18, white (no
+   shadow set), text at the top of the layer; it fades out while its tile zooms in. */
+.pb-grid span {
+  position: absolute; left: 0; right: 0; bottom: 10px; height: 50px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-size: 18px; line-height: 1.2; color: #fff; transition: opacity calc(.25s * var(--k)) ease;
+}
+.pb-grid .full span { opacity: 0; }
+.pb-grid button.sel { box-shadow: inset 0 0 0 2px #0a84ff; }
+.pb-pages { left: calc(50% - 120px); top: 0; width: 240px; height: 60px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+.pb-pages > button { display: grid; place-items: center; width: 24px; height: 24px; color: rgba(255, 255, 255, .85); }
+.pb-pages .dots { display: flex; gap: 9px; }
+.pb-pages .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .3); }   /* circle.fill */
+.pb-pages .dot.on { background: #fff; }
+.pb-bar .pb-effects.on { background: rgba(255, 255, 255, .45); }
+#pb-flash { position: fixed; inset: 0; z-index: 9999; background: #fff; opacity: 0; pointer-events: none; }
+#photobooth.fullscreen { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; border-radius: 0; z-index: 2000 !important; }
+#photobooth.fullscreen .titlebar { position: absolute; top: var(--menubar-h); left: 0; right: 0; z-index: 1; transform: translateY(calc(-100% - var(--menubar-h))); transition: transform .25s ease; }
+body.reveal #photobooth.fullscreen .titlebar { transform: none; }
+
+/* ---------- System Settings ---------- */
+#settings { width: 715px; height: 640px; flex-direction: row; background: transparent; }   /* sidebar shows the blurred desktop */
+#settings .sb {
+  flex: none; width: 215px; display: flex; flex-direction: column;
+  background: rgba(232, 232, 236, .78); border-right: .5px solid rgba(0, 0, 0, .1);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8); backdrop-filter: blur(40px) saturate(1.8);
+}
+#settings .sb .titlebar { height: 52px; padding-left: 20px; }
+#settings .search {
+  display: flex; align-items: center; gap: 5px; height: 28px; margin: 0 10px 10px; padding: 0 8px;
+  border-radius: 7px; background: rgba(0, 0, 0, .05); color: var(--text-3);
+}
+#settings .search .sym { color: var(--text-2); }
+.sb-list { flex: 1; overflow: auto; padding: 0 10px 10px; scrollbar-width: none; }
+.sb-list::-webkit-scrollbar { display: none; }
+.sb-list .account { display: flex; align-items: center; gap: 8px; padding: 4px 8px 12px; }
+.sb-list .account .sym { color: #a1a1a6; }
+.sb-list .account b { display: block; font-weight: 600; }
+.sb-list .account small { display: block; font-size: 11px; color: var(--text-2); }
+.sb-list .gap { height: 10px; }
+.sb-list .row { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border-radius: 6px; }
+.sb-list .row img, .sb-list .row .tile { width: 20px; height: 20px; flex: none; }
+.sb-list .row .tile { display: grid; place-items: center; border-radius: 5px; color: #fff; background: var(--bg); }
+.sb-list .row.sel { color: #fff; background: var(--accent); }
+#settings:not(.active) .sb-list .row.sel { color: var(--text); background: rgba(0, 0, 0, .1); }
+
+#settings main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #f5f5f5; }
+#settings .toolbar { height: 52px; gap: 22px; padding-left: 20px; color: var(--text-3); }
+#settings .toolbar h2 { position: static; margin-left: -6px; font-size: 15px; font-weight: 700; text-align: left; }
+#settings .pane { flex: 1; overflow: auto; padding: 0 20px 20px; scrollbar-width: thin; }
+#settings .group { margin-bottom: 10px; padding: 10px; border-radius: 8px; background: rgba(0, 0, 0, .035); box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .07); }
+#settings .current { display: flex; align-items: center; gap: 14px; }
+#settings .current img { width: 170px; height: 106px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .15); }
+#settings .current .name { font-weight: 600; margin-bottom: 6px; }
+#settings .popup { display: inline-block; padding: 2px 22px 2px 8px; border-radius: 5px; background: #fff; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .15), 0 1px 1px rgba(0, 0, 0, .06); }
+#settings .group.row { display: flex; align-items: center; justify-content: space-between; }
+#settings .switch { width: 26px; height: 15px; border-radius: 8px; background: rgba(0, 0, 0, .1); position: relative; }
+#settings .switch.on { background: var(--accent); }
+#settings .switch::after { content: ""; position: absolute; top: 1px; left: 1px; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 1px rgba(0, 0, 0, .2); }
+#settings .switch.on::after { left: 12px; }
+#settings .walls h3 { margin: 18px 0 8px; font-size: 13px; font-weight: 600; }
+#settings .grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+#settings .grid img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .15); }
+#settings .grid img.sel { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Dock ---------- */
+#dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 900; display: flex; justify-content: center; pointer-events: none; }
+#dock nav {
+  pointer-events: auto; display: flex; align-items: center; margin-bottom: 4px;
+  padding: 4px 4px 5px; border-radius: calc(var(--dock-tile) * .37);
+  background: rgba(255, 255, 255, .22);
+  -webkit-backdrop-filter: blur(25px) saturate(1.6); backdrop-filter: blur(25px) saturate(1.6);
+  box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .35), 0 0 0 .5px rgba(0, 0, 0, .18), 0 4px 20px rgba(0, 0, 0, .12);
+}
+.dock-item { position: relative; width: var(--dock-tile); height: var(--dock-tile); }
+.dock-item img { display: block; width: 100%; height: 100%; }
+.dock-item:active img { filter: brightness(.55); }
+.dock-item.running::after {
+  content: ""; position: absolute; left: 50%; bottom: -4px; width: 4px; height: 4px; margin-left: -2px;
+  border-radius: 50%; background: rgba(0, 0, 0, .55);
+}
+.dock-item .label {
+  position: absolute; left: 50%; bottom: calc(100% + 13px); transform: translateX(-50%);
+  padding: 3px 10px; border-radius: 6px; white-space: nowrap; color: var(--text); background: rgba(236, 236, 236, .85);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .15), 0 2px 8px rgba(0, 0, 0, .15);
+  visibility: hidden;
+}
+.dock-item:hover .label { visibility: visible; }
+.dock-item.bounce img { animation: bounce .55s cubic-bezier(.3, 0, .6, 1) 2; }
+@keyframes bounce { 50% { transform: translateY(calc(var(--dock-tile) * -.45)); } }
+.dock-sep { width: 1px; height: calc(var(--dock-tile) * .75); margin: 0 6px; background: rgba(0, 0, 0, .18); }
