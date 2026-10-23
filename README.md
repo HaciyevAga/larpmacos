@@ -35,6 +35,20 @@ tools/check-effects.sh   # compares each effect with Core Image's render (macOS)
 
 Prefix any of them with `URL=https://…/` to test another host.
 
+## Deploy
+
+The site is static and hosted on Cloudflare Pages. Apple's assets aren't in git, so deploys go from a Mac that has `public/assets/`, not from Cloudflare's git builds. Run `npx wrangler login` once.
+
+```sh
+git switch dev                 # work here; tools/deploy.sh gives a preview at https://dev.larpmacos.pages.dev
+tools/deploy.sh
+
+git switch main && git merge --ff-only dev && git push
+tools/deploy.sh                # production: https://larpmacos.pages.dev
+```
+
+`tools/deploy.sh` checks that every asset is present, uploads `public/`, then runs the Chrome checks against the deployed URL (`SKIP_CHECKS=1` to skip them). On `main` it refuses uncommitted changes.
+
 ## Credits
 
 Face tracking: [MediaPipe Tasks Vision](https://github.com/google-ai-edge/mediapipe) (Apache 2.0), vendored in `public/vendor/mediapipe/` with its usage logger disabled. macOS, Photo Booth and SF Pro are Apple's. This is a fan project, not affiliated with Apple.
