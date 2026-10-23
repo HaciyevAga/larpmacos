@@ -4,7 +4,7 @@
 
 > You are continuing **LARP macOS** in `/Users/agahaciyev/larpmacos` (a fake macOS desktop + Photo Booth website). Read `HANDOFF.md` in full first, starting with this prompt and the last two progress-log entries, then `docs/photobooth-findings.md` (sections "Effects browser", Q11 "Photofall", Q8 "Full-screen transition", "Face effects", "Core Image's own maths", and the Q6 class map).
 >
-> **State:** Phases 0–5 are built. All 24 effects Photo Booth 13.1 loads use its exact values (16 match Core Image renders; the 8 face effects run on self-hosted MediaPipe in `public/vendor/mediapipe/`, their drawing matches Core Image given the same face points). **Phase 6 polish is done** except sound timing: windows fade, the desktop right-click menu, the effects browser's page slide and mosaic zoom (decoded with REA), photofall (new photos drop into the tray, decoded from `photofall2.dae`), the full-screen transition (Photo Booth has none of its own; the build mimics macOS's), and SF Pro as a 2.75 MB WOFF2. **Deploy is the open item.**
+> **State:** Phases 0–5 are built. All 24 effects Photo Booth 13.1 loads use its exact values (16 match Core Image renders; the 8 face effects run on self-hosted MediaPipe in `public/vendor/mediapipe/`, their drawing matches Core Image given the same face points). **Phase 6 polish is done** except sound timing: windows fade, the desktop right-click menu, the effects browser's page slide and mosaic zoom (decoded with REA), photofall (new photos drop into the tray, decoded from `photofall2.dae`), the full-screen transition (Photo Booth has none of its own; the build mimics macOS's), and SF Pro as a 2.75 MB WOFF2. **Deployed** to https://larpmacos.pages.dev (Cloudflare Pages, direct upload). The owner accepted all effects and animations on 2026-10-23.
 >
 > **Rules**
 > - Stack: plain ES modules in `public/`, no build step. Serve with `python3 -m http.server 8765 -d public`. Test with `node tools/shot.mjs <png> "$(cat tools/check-photobooth.js)"`, then `tools/check-shell.js` (Chrome only: its drag test uses synthetic pointers Firefox rejects), then `tools/shot-firefox.mjs` with `check-photobooth.js`, then `tools/check-effects.sh` (16 effects on The Beach, then a face pass on a public-domain NASA portrait it downloads into `.cache/faces/` once). Run them one at a time; all take `URL=`.
@@ -13,14 +13,16 @@
 > - **Privacy:** MediaPipe's bundle has a usage logger that posts to `odml.pa.googleapis.com` (no opt-out in its API). `public/vendor/mediapipe/vision_bundle.mjs` is patched (`flush(t,e){if(this.error)` → `flush(t,e){this.i=[];if(this.error)`, and the source-map comment removed); redo that if the package is ever upgraded. `index.html` sets `Content-Security-Policy: connect-src 'self'`; keep it.
 > - **REA:** Hopper provider on a copy of the binary (`cp "/System/Applications/Photo Booth.app/Contents/MacOS/Photo Booth" <your tmp>/PhotoBooth`, sha256 `73ed6688…`). Prefer `docs/study/pb-strings.tsv` / `pb-procedures.tsv` over string searches. Pseudocode drops float arguments: use `procedure_assembly` + `read_bytes`. For bulk reading, dump `otool -arch arm64e -tV <copy>` to a file once and read it with a small Python helper (stripped: use the procedure table for ranges; resolve `adrp` + `ldr d` pairs from the file at offset 819200 + (address − 0x100000000); find callers by grepping `bl <selector stub>`, where stubs are the `auth_sel_*` rows). A selector whose selref is referenced only from a method list has no caller. Hopper can go unreachable mid-batch: `close_binary`, reopen, retry. Run `close_binary` when done.
 > - **Core Animation timing** can be measured from JXA: a CALayer only gets implicit actions inside a layer tree with a context (add it to an offscreen `NSWindow`'s layer-backed content view, flush, then change it in a `CATransaction`).
+> - **Public repo, private assets:** the repo is public on GitHub for the owner's portfolio, so `public/assets/` and `docs/study/` are gitignored and never committed (SF Pro and SF Symbols forbid redistribution). They stay on disk; `tools/extract-assets.sh` rebuilds the assets. The old history that carries them is the local-only branch `private-history`: never push it, and never `git push --all`.
+> - **Redeploy** from a checkout that has `public/assets/`: `npx wrangler pages deploy public --project-name larpmacos --branch main` (no `--force`; the project is classic Pages). Then run the checks with `URL=https://larpmacos.pages.dev/`.
 > - In a background job the shell guard rejects `cd` outside the worktree, `git -C`, loops that run commands from variables, awk programs with `|`, and inline heredocs fed to interpreters: write helper scripts with Write and run them by absolute path.
 > - Record every finding in `docs/photobooth-findings.md` as observed / inferred / unknown, with Evidence IDs.
 > - **Git:** commit after each finished chunk. When context gets heavy, stop at a clean point, add a progress entry here, and give the owner a fresh prompt for a new chat.
 >
 > **Tasks, in order**
-> 1. If `main` doesn't have session 6 yet, merge the branch `worktree-phase6-s6` into it from the main checkout (`git merge --ff-only worktree-phase6-s6`).
-> 2. **The owner accepted everything (2026-10-23):** all effects, face effects and animations "work completely good". Don't ask for side-by-side feedback again and don't tune anything unless the owner reports a problem.
-> 3. **Deploy:** ask the owner for the host and domain if they haven't said. Needs HTTPS (camera), `.wasm` served as `application/wasm`, and the `Content-Security-Policy` in `index.html` kept. Then check the live site with the same tools (`URL=https://…`).
+> 1. If `main` doesn't have session 7 yet, the owner runs the command block in the session 7 progress entry (it keeps `private-history`, moves `main` to the clean history, and publishes the repo). Don't run `git push` yourself unless the owner asks.
+> 2. **The owner accepted everything (2026-10-23):** don't ask for side-by-side feedback again and don't tune anything unless the owner reports a problem.
+> 3. Optional, if the owner wants it: a custom domain on the Pages project, and a screenshot or GIF in `README.md` for the portfolio (take it with `tools/shot.mjs`; it must not be Apple-only content like a bare wallpaper).
 > 4. Optional, REA first: sound timing (Phase 6 polish), the effects browser's full-screen page transition (`-[VideoLayer _fullScreenGoToPage:animate:]`, not decoded; the build uses the window slide in full screen too).
 
 ---
@@ -232,8 +234,8 @@ Questions to answer, written into `docs/photobooth-findings.md`:
 ### Phase 6: Polish and deploy
 
 - **Polish:** open and close animations for windows, the full-screen transition, a right-click menu on the desktop with "Change Wallpaper…", and sound timing.
-- **Repo:** run `git init`. Commit the extracted assets; the owner accepts the risk.
-- **Deploy:** any static host with HTTPS, since the camera only works on secure origins. The owner picks the host and domain.
+- **Repo:** public on GitHub, code only (session 7 changed this: the extracted assets are gitignored, not committed).
+- **Deploy:** Cloudflare Pages, https://larpmacos.pages.dev, by direct upload of `public/`.
 
 ---
 
@@ -541,3 +543,27 @@ Session 5's branch was fast-forwarded into `main` first (`0209106`). This sessio
 - The green button: how long the real full-screen animation takes and whether the desktop slides left as the build shows.
 
 **Notes:** Hopper went unreachable once mid-batch; `close_binary` + reopen fixed it. The REA session was closed at the end.
+
+### 2026-10-23 — Session 7: deployed; public, code-only repo
+
+Session 6 was fast-forwarded into `main` first (`1d18c5f`).
+
+**Owner's calls:** the repo goes **public** on GitHub for a portfolio, **code only**; the site is hosted on **Cloudflare Pages** on the free subdomain.
+
+**Repo**
+- `.gitignore` now drops `public/assets/` and `docs/study/`; `README.md` added (what it is, the live link, how to extract the assets and run the checks, credits).
+- Because every earlier commit carries the assets, the public history starts fresh: branch `public-main` is one parentless commit (`0992006`) with the same code and no assets (27 files). This session's work is on branch `worktree-public-repo` on top of it.
+- **The owner runs this from the main checkout** (it moves nothing on disk; the assets stay, now untracked and ignored):
+  ```sh
+  git branch private-history main          # old history with the assets, local only
+  git reset --mixed worktree-public-repo   # main = clean history + session 7
+  git checkout -- .gitignore README.md HANDOFF.md tools/check-shell.js
+  git status --short                       # expect nothing (.claude/ is ignored now)
+  gh repo create larpmacos --public --source . --remote origin --push
+  ```
+
+**Deploy**
+- Pages project `larpmacos` (account of agha.hajiyev@yahoo.com), created with `--force` because wrangler 4.152 now tries to move Pages projects to Workers and that path failed. Uploaded `public/` (190 files, 45 MB): https://larpmacos.pages.dev.
+- Live: HTTPS, `.wasm` as `application/wasm`, the CSP meta tag intact, the font as `font/woff2`.
+
+**Checks against the live site:** `check-photobooth.js` passes in Chrome and Firefox; `check-shell.js` passes in Chrome; `check-effects.sh` passes for all 24 effects. `check-shell.js` first failed at "wallpaper choice saved": the choice is saved after the 1.8 MB wallpaper decodes, which took longer than its fixed 0.8 s wait off localhost. It now polls for up to 10 s. The app is unchanged.

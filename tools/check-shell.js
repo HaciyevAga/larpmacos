@@ -53,7 +53,8 @@ ok(pb.hidden && !dot('photo-booth'), 'Quit Photo Booth closes the window and cle
 ok(document.querySelector('#menus button.app').textContent === 'Finder', 'menu bar falls back to Finder');
 
 document.querySelector('[data-icon=system-settings]').click(); await wait(900);
-document.querySelector('#settings .grid img[title=Peak]').click(); await wait(800);
+document.querySelector('#settings .grid img[title=Peak]').click();
+for (let t = 0; t < 100 && localStorage.getItem('wallpaper') !== 'Peak'; t++) await wait(100);  // saved once the full image decodes, slower off localhost
 ok(localStorage.getItem('wallpaper') === 'Peak', 'wallpaper choice saved');
 ok(document.querySelector('#wallpaper').style.backgroundImage.includes('peak.jpg'), 'wallpaper applied');
 localStorage.removeItem('wallpaper');
