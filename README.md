@@ -4,6 +4,8 @@ A fake macOS desktop in the browser, with a working Photo Booth. Open it on any 
 
 **Live:** https://larpmacos.pages.dev
 
+![LARP macOS with Photo Booth open](docs/screenshot.jpg)
+
 - Menu bar, Dock, windows you can drag, focus and full-screen, the desktop's right-click menu, and a wallpaper picker.
 - Photo Booth: live mirrored camera, still / 4-up / video, the 3-2-1 countdown, flash, sounds, the photo tray with photofall, and save.
 - All 24 effects that Photo Booth 13.1 loads, using its exact parameters. The 16 image effects are WebGL ports of Core Image's maths, checked against Core Image renders. The 8 face effects (Bug Out, Lovestruck, Dizzy…) run on self-hosted MediaPipe face tracking.
